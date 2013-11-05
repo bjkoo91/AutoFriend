@@ -34,6 +34,7 @@ public class AutoFriendService extends Service {
 				if (bundle != null) {
 					Object[] pdus = (Object[])bundle.get("pdus");
 					SmsMessage[] messages = new SmsMessage[pdus.length];
+					String text = "";
 					
 					for (int i = 0; i < pdus.length; ++i) {
 						messages[i] = SmsMessage.createFromPdu((byte[])pdus[i]);
@@ -41,10 +42,9 @@ public class AutoFriendService extends Service {
 					
 					for (SmsMessage message: messages) {
 						requestReceived(message.getOriginatingAddress());
+						text = message.getDisplayMessageBody();
+						respond(text);
 					}
-					
-					/* need to pass the received message */
-					respond();
 				}
 			}
 		}
@@ -99,7 +99,7 @@ public class AutoFriendService extends Service {
     	requester = f;
     }
 	
-	private void respond() {
+	private void respond(String message) {
 		Log.v(TAG, "respond");
 		/* set reply to CleverBot's respond */
 		String reply = "Hello, World";
