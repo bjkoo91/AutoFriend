@@ -1,5 +1,7 @@
 package com.autofriend;
 
+import java.util.HashMap;
+
 import com.google.code.chatterbotapi.ChatterBot;
 import com.google.code.chatterbotapi.ChatterBotFactory;
 import com.google.code.chatterbotapi.ChatterBotSession;
@@ -27,8 +29,9 @@ public class AutoFriendService extends Service {
 	private static final String DELIVERED_ACTION = "DELIVERED_SMS";
 	private final ChatterBotType type = ChatterBotType.CLEVERBOT;
 	private static ChatterBotFactory botFactory;
-	private static ChatterBot bot;
-	private static ChatterBotSession session;
+	// private static ChatterBot bot;
+	// private static ChatterBotSession session;
+	private static HashMap<String, ChatterBotSession> sessionMap;
 
 	private String requester;
 
@@ -49,9 +52,18 @@ public class AutoFriendService extends Service {
 					}
 
 					for (SmsMessage message: messages) {
+						if(!sessionMap.containsKey(message.getOriginatingAddress())) {
+							try {
+								ChatterBot bot = botFactory.create(type);
+								ChatterBotSession session = bot.createSession();
+								sessionMap.put(message.getOriginatingAddress(), session);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
 						requestReceived(message.getOriginatingAddress());
 						String text = message.getDisplayMessageBody();
-						respond(text);
+						respond(text, message.getOriginatingAddress());
 					}
 				}
 			}
@@ -76,6 +88,8 @@ public class AutoFriendService extends Service {
 	public void onCreate() {
 		Log.d(TAG, "onCreate");
 		super.onCreate();
+		
+		sessionMap = new HashMap<String, ChatterBotSession>();
 
 		IntentFilter receiverFilter = new IntentFilter(RECEIVED_ACTION);
 		registerReceiver(receiver, receiverFilter);
@@ -84,11 +98,11 @@ public class AutoFriendService extends Service {
 		registerReceiver(sender, senderFilter);
 
 		botFactory = new ChatterBotFactory();
-		try {
-			bot = botFactory.create(type);
-		} catch (Exception e) {
-		}
-		session = bot.createSession();
+//		try {
+//			bot = botFactory.create(type);
+//		} catch (Exception e) {
+//		}
+		//session = bot.createSession();
 	}
 
 	@Override
@@ -114,10 +128,11 @@ public class AutoFriendService extends Service {
 		requester = f;
 	}
 
-	private void respond(String message) {
+	private void respond(String message, String originatingAddress) {
 		Log.v(TAG, "respond");
 		/* set reply to CleverBot's respond */
 		String reply = "";
+		ChatterBotSession session = sessionMap.get(originatingAddress);
 		try {
 			reply = session.think(message);
 		} catch (Exception e) {
