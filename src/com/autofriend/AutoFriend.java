@@ -15,7 +15,6 @@ public class AutoFriend extends Activity {
 	private static final String TAG = "AutoFriend";
 	private static final String serviceName = "com.autofriend.AutoFriendService";
 	private static boolean mServiceOn;
-	private static SharedPreferences mPrefs;
 	private static ToggleButton mServiceToggleButton;
 	
 	@Override
@@ -25,8 +24,7 @@ public class AutoFriend extends Activity {
 		setContentView(R.layout.activity_main);
 		
 		// get toggle button state
-		mPrefs = getSharedPreferences("ttt_pref", MODE_PRIVATE);
-		mServiceOn = mPrefs.getBoolean("mServiceOn", false);
+		mServiceOn = isAutoFriendServiceRunning();
 		mServiceToggleButton = (ToggleButton) findViewById(R.id.serviceToggleButton);
 		mServiceToggleButton.setChecked(mServiceOn);
 	}
@@ -41,11 +39,6 @@ public class AutoFriend extends Activity {
 	public void onStop() {
 		Log.v(TAG, "onStop");
 		super.onStop();
-		
-		// Save the toggle button state
-		SharedPreferences.Editor ed = mPrefs.edit();
-		ed.putBoolean("mServiceOn", mServiceOn);
-		ed.commit();
 	}
 	
 	private void startAutoFriend(View v) {
@@ -95,14 +88,14 @@ public class AutoFriend extends Activity {
 	
 	// serviceToggle click event handler
 	public void onServiceToggleClicked(View view) {
-		Log.v(TAG, "onServiceToggle");
+		Log.v(TAG, "onServiceToggleClicked");
 
 		boolean on = ((ToggleButton) view).isChecked();
 		if (on) {
-			Log.d(TAG,"button toggled on");
+			Log.d(TAG, "button toggled on");
 			startAutoFriend(view);
 		} else {
-			Log.d(TAG,"button toggled off");
+			Log.d(TAG, "button toggled off");
 			stopAutoFriend(view);
 		}
 	}
