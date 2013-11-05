@@ -13,7 +13,7 @@ import android.widget.ToggleButton;
 public class AutoFriend extends Activity {
 	
 	private static final String TAG = "AutoFriend";
-	private static final String serviceName = "AUTO_FRIEND";
+	private static final String serviceName = "com.autofriend.AutoFriendService";
 	private static boolean mServiceOn;
 	private static SharedPreferences mPrefs;
 	private static ToggleButton mServiceToggleButton;
@@ -71,6 +71,7 @@ public class AutoFriend extends Activity {
 				Intent service = new Intent(this, AutoFriendService.class);
 				startService(service);
 				running = isAutoFriendServiceRunning();
+				Log.d(TAG, "started service: " + running);
 			} catch (Exception e) {
 				Log.e("onCreate", "service creation problem", e);
 			}
@@ -86,7 +87,6 @@ public class AutoFriend extends Activity {
 		for (RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
 			if (serviceName.equals(service.service.getClassName())) {
 				result = true;
-				break;
 			}
 		}
 		
