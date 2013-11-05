@@ -1,4 +1,4 @@
-package autofriend;
+package com.autofriend;
 
 import android.app.Activity;
 import android.app.PendingIntent;

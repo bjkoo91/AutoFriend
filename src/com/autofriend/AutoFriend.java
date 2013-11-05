@@ -1,6 +1,4 @@
-package autofriend;
-
-import com.example.autofriend.R;
+package com.autofriend;
 
 import android.app.Activity;
 import android.app.ActivityManager;
@@ -11,7 +9,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ToggleButton;
-
 
 public class AutoFriend extends Activity {
 	
