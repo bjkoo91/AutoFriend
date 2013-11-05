@@ -102,7 +102,7 @@ public class AutoFriendService extends Service {
 	private void respond() {
 		Log.v(TAG, "respond");
 		/* set reply to CleverBot's respond */
-		String reply = "";
+		String reply = "Hello, World";
 		
         SmsManager sms = SmsManager.getDefault();
     	Intent sentIn = new Intent(SENT_ACTION);
