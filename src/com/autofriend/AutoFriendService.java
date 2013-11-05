@@ -29,8 +29,6 @@ public class AutoFriendService extends Service {
 	private static final String DELIVERED_ACTION = "DELIVERED_SMS";
 	private final ChatterBotType type = ChatterBotType.CLEVERBOT;
 	private static ChatterBotFactory botFactory;
-	// private static ChatterBot bot;
-	// private static ChatterBotSession session;
 	private static HashMap<String, ChatterBotSession> sessionMap;
 
 	private String requester;
@@ -89,6 +87,7 @@ public class AutoFriendService extends Service {
 		Log.d(TAG, "onCreate");
 		super.onCreate();
 		
+		// be careful of sessionMap growing too large
 		sessionMap = new HashMap<String, ChatterBotSession>();
 
 		IntentFilter receiverFilter = new IntentFilter(RECEIVED_ACTION);
@@ -98,11 +97,6 @@ public class AutoFriendService extends Service {
 		registerReceiver(sender, senderFilter);
 
 		botFactory = new ChatterBotFactory();
-//		try {
-//			bot = botFactory.create(type);
-//		} catch (Exception e) {
-//		}
-		//session = bot.createSession();
 	}
 
 	@Override
@@ -130,8 +124,7 @@ public class AutoFriendService extends Service {
 
 	private void respond(String message, String originatingAddress) {
 		Log.v(TAG, "respond");
-		/* set reply to CleverBot's respond */
-		String reply = "";
+		String reply = "Ok";
 		ChatterBotSession session = sessionMap.get(originatingAddress);
 		try {
 			reply = session.think(message);
