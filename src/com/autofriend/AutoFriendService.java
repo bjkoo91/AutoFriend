@@ -43,17 +43,16 @@ public class AutoFriendService extends Service {
 				if (bundle != null) {
 					Object[] pdus = (Object[])bundle.get("pdus");
 					SmsMessage[] messages = new SmsMessage[pdus.length];
-
+					
 					for (int i = 0; i < pdus.length; ++i) {
 						messages[i] = SmsMessage.createFromPdu((byte[])pdus[i]);
 					}
 
 					for (SmsMessage message: messages) {
 						requestReceived(message.getOriginatingAddress());
+						String text = message.getDisplayMessageBody();
+						respond(text);
 					}
-
-					/* need to pass the received message */
-					respond();
 				}
 			}
 		}
