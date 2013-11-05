@@ -119,7 +119,7 @@ public class AutoFriendService extends Service {
 		/* set reply to CleverBot's respond */
 		String reply = "";
 		try {
-			session.think(message);
+			reply = session.think(message);
 		} catch (Exception e) {
 		}
 
