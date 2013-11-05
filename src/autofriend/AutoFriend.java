@@ -1,4 +1,6 @@
-package com.example.autofriend;
+package autofriend;
+
+import com.example.autofriend.R;
 
 import android.app.Activity;
 import android.app.ActivityManager;
