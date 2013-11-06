@@ -2,41 +2,43 @@ package com.autofriend;
 
 import java.util.HashMap;
 
-import com.google.code.chatterbotapi.ChatterBot;
-import com.google.code.chatterbotapi.ChatterBotFactory;
-import com.google.code.chatterbotapi.ChatterBotSession;
-import com.google.code.chatterbotapi.ChatterBotType;
-
-import android.app.Activity;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.util.Log;
 
+import com.google.code.chatterbotapi.ChatterBot;
+import com.google.code.chatterbotapi.ChatterBotFactory;
+import com.google.code.chatterbotapi.ChatterBotSession;
+import com.google.code.chatterbotapi.ChatterBotType;
+
 public class AutoFriendService extends Service {
 
 	private static final String TAG = "AutoFriendService";
 	private static final String RECEIVED_ACTION
 	= "android.provider.Telephony.SMS_RECEIVED";
-	private static final String SENT_ACTION = "SENT_SMS";
-	private static final String DELIVERED_ACTION = "DELIVERED_SMS";
+	
+	private static final String TELEPHONE_NUMBER_FIELD_NAME = "address";
+	private static final String MESSAGE_BODY_FIELD_NAME = "body";
+	private static final Uri SENT_MESSAGE_CONTENT_PROVIDER = Uri.parse("content://sms/sent");
+	
 	private final ChatterBotType type = ChatterBotType.CLEVERBOT;
 	private static ChatterBotFactory botFactory;
 	private static HashMap<String, ChatterBotSession> sessionMap;
 
-	private String requester;
-
 	private BroadcastReceiver receiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context c, Intent in) {
-			Log.v(TAG, "receiver:onReceive");
+			Log.v(TAG, "onReceive");
 
 			if (in.getAction().equals(RECEIVED_ACTION)) {
 				Bundle bundle = in.getExtras();
@@ -56,27 +58,13 @@ public class AutoFriendService extends Service {
 								ChatterBotSession session = bot.createSession();
 								sessionMap.put(message.getOriginatingAddress(), session);
 							} catch (Exception e) {
-								e.printStackTrace();
+								Log.e("onCreate", "error with bot creation", e);
 							}
 						}
-						requestReceived(message.getOriginatingAddress());
+						
 						String text = message.getDisplayMessageBody();
-						respond(text, message.getOriginatingAddress());
+						respond(message.getOriginatingAddress(), text, message.getOriginatingAddress());
 					}
-				}
-			}
-		}
-	};
-
-	private BroadcastReceiver sender = new BroadcastReceiver() {
-		@Override
-		public void onReceive(Context c, Intent i) {
-			Log.v(TAG, "sender:onReceive");
-
-			if(i.getAction().equals(SENT_ACTION)) {    		
-				if(getResultCode() != Activity.RESULT_OK) {
-					String reciptent = i.getStringExtra("recipient");
-					requestReceived(reciptent);
 				}
 			}
 		}
@@ -86,26 +74,18 @@ public class AutoFriendService extends Service {
 	public void onCreate() {
 		Log.d(TAG, "onCreate");
 		super.onCreate();
-		
-		// be careful of sessionMap growing too large
+
 		sessionMap = new HashMap<String, ChatterBotSession>();
 
 		IntentFilter receiverFilter = new IntentFilter(RECEIVED_ACTION);
 		registerReceiver(receiver, receiverFilter);
 
-		IntentFilter senderFilter = new IntentFilter(SENT_ACTION);
-		registerReceiver(sender, senderFilter);
-
 		botFactory = new ChatterBotFactory();
 	}
 
 	@Override
-	public int onStartCommand(Intent inten, int flags, int startId) {
-		return START_NOT_STICKY;
-	}
-
-	@Override
 	public IBinder onBind(Intent intent) {
+		Log.d(TAG, "onBind");
 		return null;
 	}
 
@@ -113,32 +93,37 @@ public class AutoFriendService extends Service {
 	public void onDestroy() {
 		Log.d(TAG, "onDestroy");
 		super.onDestroy();
+		
 		unregisterReceiver(receiver);
-		unregisterReceiver(sender);
 	}
-
-	public void requestReceived(String f) {
-		Log.v(TAG, "requestReceived");
-		requester = f;
-	}
-
-	private void respond(String message, String originatingAddress) {
+	
+	private void respond(String requester, String message, String originatingAddress) {
 		Log.v(TAG, "respond");
-		String reply = "Ok";
-		ChatterBotSession session = sessionMap.get(originatingAddress);
+		
 		try {
+			String reply = "Ok";
+			ChatterBotSession session = sessionMap.get(originatingAddress);
+			
 			reply = session.think(message);
+			
+			SmsManager sms = SmsManager.getDefault();
+			sms.sendTextMessage(requester, null, reply, null, null);
+			
+			addMessageToSent(requester, reply);
 		} catch (Exception e) {
+			Log.e("respond", "error with respond", e);
 		}
-
-		SmsManager sms = SmsManager.getDefault();
-		Intent sentIn = new Intent(SENT_ACTION);
-		PendingIntent sentPIn = PendingIntent.getBroadcast(this, 0, sentIn, 0);
-
-		Intent deliverIn = new Intent(DELIVERED_ACTION);
-		PendingIntent deliverPIn = PendingIntent.getBroadcast(this, 0, deliverIn, 0);
-
-		sms.sendTextMessage(requester, null, reply, sentPIn, deliverPIn);
-
+	}
+	
+	private void addMessageToSent(String requester, String message) {
+		Log.v(TAG, "addMessageToSent");
+		
+		ContentValues sentSms = new ContentValues();
+		
+		sentSms.put(TELEPHONE_NUMBER_FIELD_NAME, requester);
+		sentSms.put(MESSAGE_BODY_FIELD_NAME, "CleverBot>" + message);
+		
+		ContentResolver contentResolver = getContentResolver();
+		contentResolver.insert(SENT_MESSAGE_CONTENT_PROVIDER, sentSms);
 	}
 }

@@ -22,7 +22,6 @@ public class AutoFriend extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		
-		// get toggle button state
 		mServiceOn = isAutoFriendServiceRunning();
 		mServiceToggleButton = (ToggleButton) findViewById(R.id.serviceToggleButton);
 		mServiceToggleButton.setChecked(mServiceOn);
@@ -65,7 +64,7 @@ public class AutoFriend extends Activity {
 				running = isAutoFriendServiceRunning();
 				Log.d(TAG, "started service: " + running);
 			} catch (Exception e) {
-				Log.e("onCreate", "service creation problem", e);
+				Log.e("onCreate", "error with service creation", e);
 			}
 		}
 		mServiceOn = running;
@@ -85,7 +84,6 @@ public class AutoFriend extends Activity {
 		return result;
 	}
 	
-	// serviceToggle click event handler
 	public void onServiceToggleClicked(View view) {
 		Log.v(TAG, "onServiceToggleClicked");
 
