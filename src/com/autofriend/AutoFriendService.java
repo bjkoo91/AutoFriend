@@ -52,6 +52,9 @@ public class AutoFriendService extends Service {
 					}
 
 					for (SmsMessage message: messages) {
+						/* 
+						 * Creating a unique ChatterBot session for each person and store them in the HashMap
+						 */
 						if(!sessionMap.containsKey(message.getOriginatingAddress())) {
 							try {
 								ChatterBot bot = botFactory.create(type);
@@ -97,6 +100,10 @@ public class AutoFriendService extends Service {
 		unregisterReceiver(receiver);
 	}
 	
+	/*
+	 * Get CleverBot's respond to the received message
+	 * Send the respond back to the sender
+	 */
 	private void respond(String requester, String message, String originatingAddress) {
 		Log.v(TAG, "respond");
 		
@@ -115,13 +122,17 @@ public class AutoFriendService extends Service {
 		}
 	}
 	
+	/*
+	 * Add the CleverBot's respond to the Sent
+	 * Each CleverBot's message has "CleverBot> " appended to front of it
+	 */
 	private void addMessageToSent(String requester, String message) {
 		Log.v(TAG, "addMessageToSent");
 		
 		ContentValues sentSms = new ContentValues();
 		
 		sentSms.put(TELEPHONE_NUMBER_FIELD_NAME, requester);
-		sentSms.put(MESSAGE_BODY_FIELD_NAME, "CleverBot>" + message);
+		sentSms.put(MESSAGE_BODY_FIELD_NAME, "CleverBot> " + message);
 		
 		ContentResolver contentResolver = getContentResolver();
 		contentResolver.insert(SENT_MESSAGE_CONTENT_PROVIDER, sentSms);

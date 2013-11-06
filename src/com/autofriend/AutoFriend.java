@@ -52,6 +52,9 @@ public class AutoFriend extends Activity {
 		mServiceOn = !stopped;
 	}
 	
+	/*
+	 * Start the AutoFriend Service if the service is not already running
+	 */
 	private void startAutoFriendService() {
 		Log.v(TAG, "startAutoFriendService");
 		boolean running = isAutoFriendServiceRunning();
@@ -70,6 +73,9 @@ public class AutoFriend extends Activity {
 		mServiceOn = running;
 	}
 	
+	/*
+	 * Check if AutoFriendService is already running or not
+	 */
 	private boolean isAutoFriendServiceRunning() {
 		Log.v(TAG, "isServiceRunning");
 		ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
