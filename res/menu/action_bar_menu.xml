@@ -1,0 +1,10 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+	<item
+	    android:title="switch"
+	    android:id="@+id/serviceSwitch"
+	    android:showAsAction="always" 
+	    android:actionViewClass="android.widget.Switch"
+	    />
+    
+</menu>
