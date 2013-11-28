@@ -2,6 +2,9 @@ package com.autofriend;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 
 import android.app.Activity;
 import android.app.ActivityManager;
@@ -9,9 +12,11 @@ import android.app.ActivityManager.RunningServiceInfo;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.provider.ContactsContract.PhoneLookup;
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
@@ -39,6 +44,7 @@ public class AutoFriend extends Activity {
 	private ContactsListAdapter mContactsListAdapter = null;
 	private ArrayList<Contact> mContacts;
     private static SparseBooleanArray mSelectedContacts = new SparseBooleanArray(); 
+    private static Map<String, String> mNameToNumber;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -49,6 +55,7 @@ public class AutoFriend extends Activity {
 		mContacts = new ArrayList<Contact>();
 		mServiceOn = isAutoFriendServiceRunning();
 		mContactsListView = (ListView) findViewById(R.id.contact_list);
+		mNameToNumber = new HashMap<String, String>();
 //		ViewHolder holder = new ViewHolder();
 //		holder.displayName = (TextView) findViewById(R.id.display_name);
 //		holder.setService = (CheckBox) findViewById(R.id.set_service);
@@ -149,29 +156,24 @@ public class AutoFriend extends Activity {
 		Log.v(TAG, "getContactsList");
         // Build adapter with contact entries
     	String [] projection = new String[] {
-    				ContactsContract.Contacts._ID,
-    				ContactsContract.Contacts.DISPLAY_NAME 
+    				ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+    				ContactsContract.CommonDataKinds.Phone.NUMBER
     	};
         Cursor cursor = getContentResolver().query(	
-        		ContactsContract.Contacts.CONTENT_URI,
+        		ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
         		projection,
         		null,
         		null,
-        		ContactsContract.Contacts.DISPLAY_NAME);
+        		ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME);
         while(cursor.moveToNext()) {
-        	String contact_name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
-        	boolean checked = false;
-        	Contact contact = new Contact(contact_name, checked);
+        	String contact_name = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
+        	String number = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+        	boolean checked = false; // need to change this to read from file
+        	Contact contact = new Contact(contact_name, number, checked);
         	mContacts.add(contact);
         }
         cursor.close();
         Log.d(TAG,"mContacts: "+Arrays.toString(mContacts.toArray()));
-//        String [] columns = new String [] { ContactsContract.Data.DISPLAY_NAME };
-//        int [] textViewIds = { R.id.display_name };
-//		Log.d(TAG, "ContactListAdapter");
-//        ListAdapter adapter = new ContactsListAdapter(this, R.layout.contact_entry, cursor, columns, textViewIds);
-//        return adapter;
-        //mContactListView.setAdapter(adapter);
     }
     
     private ContactsListAdapter getContactsListAdapter() {
@@ -205,7 +207,7 @@ public class AutoFriend extends Activity {
                         CheckBox nameCheckBox = (CheckBox) view.findViewById(R.id.set_service);
                         nameCheckBox.setChecked(mSelectedContacts.get(position));
                         if (nameCheckBox != null) {
-                            nameCheckBox.setText(contact.getName());
+                            nameCheckBox.setText(contact.getName() + " " + contact.getNumber());
                         }
                         nameCheckBox.setOnClickListener(new OnItemClickListener(position,nameCheckBox.getText(),nameCheckBox));
                 }
@@ -278,8 +280,11 @@ public class AutoFriend extends Activity {
     public class Contact {
     	private String name;
     	private boolean checked;
-    	public Contact(String name, boolean checked) {
+    	private String number;
+    
+    	public Contact(String name, String number, boolean checked) {
     		this.name = name;
+    		this.number = number;
     		this.checked = checked;
     	}
     	public String getName() {
@@ -287,6 +292,9 @@ public class AutoFriend extends Activity {
     	}
     	public boolean getChecked() {
     		return checked;
+    	}
+    	public String getNumber() {
+    		return number;
     	}
     }
 
