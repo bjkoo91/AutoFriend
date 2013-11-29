@@ -3,20 +3,22 @@ package com.autofriend;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract;
-import android.provider.ContactsContract.PhoneLookup;
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
@@ -32,7 +34,6 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ListView;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class AutoFriend extends Activity {
 
@@ -45,6 +46,7 @@ public class AutoFriend extends Activity {
 	private ArrayList<Contact> mContacts;
     private static SparseBooleanArray mSelectedContacts = new SparseBooleanArray(); 
     private static Map<String, String> mNameToNumber;
+    private SharedPreferences mPrefs;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -60,6 +62,20 @@ public class AutoFriend extends Activity {
 //		holder.displayName = (TextView) findViewById(R.id.display_name);
 //		holder.setService = (CheckBox) findViewById(R.id.set_service);
 //		mContactsListView.setTag(holder);
+		mPrefs = getSharedPreferences("ttt_prefs", MODE_PRIVATE);
+		String json = mPrefs.getString("mNameToNumber", "");
+		if (!json.isEmpty()) {
+			try {
+			JSONObject jsonobj = new JSONObject(json);
+			 Iterator it = jsonobj.keys();
+			 while (it.hasNext()) {
+				 String key = (String) it.next();
+				 mNameToNumber.put(key, jsonobj.getString(key));
+			 }
+			} catch(JSONException e) {
+				e.printStackTrace();
+			}
+		}
 		new LoadContacts().execute();
 	}
 
@@ -96,6 +112,10 @@ public class AutoFriend extends Activity {
 	public void onStop() {
 		Log.v(TAG, "onStop");
 		super.onStop();
+		SharedPreferences mPrefs = getSharedPreferences("ttt_prefs", MODE_PRIVATE);  
+		SharedPreferences.Editor ed = mPrefs.edit();
+		ed.putString("mNameToNumber", new JSONObject(mNameToNumber).toString());
+		ed.commit();
 	}
 
 	private void startAutoFriend(View v) {
@@ -168,6 +188,7 @@ public class AutoFriend extends Activity {
         while(cursor.moveToNext()) {
         	String contact_name = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
         	String number = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+        	mNameToNumber.put(contact_name, number);
         	boolean checked = false; // need to change this to read from file
         	Contact contact = new Contact(contact_name, number, checked);
         	mContacts.add(contact);
