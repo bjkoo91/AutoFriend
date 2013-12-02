@@ -13,7 +13,7 @@ public class MessageTimer {
 	
 	private static final String TAG = "AutoFriendTimer";
 	
-	private static Timer timer = new Timer();
+	private static Timer timer;
 	private static int repeatTime = 5000;
 	
 	private static LinkedList<Message> messages;
@@ -28,6 +28,7 @@ public class MessageTimer {
 		Log.v(TAG, "start");
 		messages = new LinkedList<Message>();
 		messageLock = new ReentrantLock();
+		timer = new Timer();
 		timer.schedule(new MessageSender(), 0, repeatTime);
 	}
 	
@@ -39,6 +40,7 @@ public class MessageTimer {
 	public static void stop() {
 		Log.v(TAG, "stop");
 		timer.cancel();
+		timer.purge();
 		
 		try {
 			messageLock.lock();
