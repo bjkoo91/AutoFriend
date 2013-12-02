@@ -29,6 +29,11 @@
             </intent-filter>
         </activity>
         
+         <activity
+            android:name="com.autofriend.Settings"
+            android:label="@string/app_settings" >
+        </activity>
+        
         <service
             android:name="com.autofriend.AutoFriendService"
             android:enabled="true" >

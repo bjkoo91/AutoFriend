@@ -19,6 +19,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -80,7 +81,18 @@ public class AutoFriend extends Activity {
 				}
 			}
 		});
+		inflater.inflate(R.menu.menu, menu);
 		return true;
+	}
+	
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+			case R.id.settings:
+				Intent settings = new Intent(this, Settings.class);
+				startActivity(settings);
+				return true;
+			default: return super.onOptionsItemSelected(item);
+		}
 	}
 
 	@Override
