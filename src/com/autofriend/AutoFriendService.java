@@ -2,6 +2,7 @@ package com.autofriend;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Set;
 
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -28,7 +29,7 @@ public class AutoFriendService extends Service {
 	private static final ChatterBotType type = ChatterBotType.CLEVERBOT;
 	private static ChatterBotFactory botFactory;
 	private static HashMap<String, ChatterBotSession> sessionMap;
-	private static HashSet<String> numbers;
+	private static Set<String> numbers;
 
 	@Override
 	public void onCreate() {
@@ -42,11 +43,10 @@ public class AutoFriendService extends Service {
 		registerReceiver(receiver, receiverFilter);
 
 		numbers = new HashSet<String>();
-		HashSet<String> temp = AutoFriend.getNumbers();
+		Set<String> temp = AutoFriend.getNumbers();
 		for (String number : temp) {
 			numbers.add(number);
 		}
-
 
 		MessageTimer.start();
 	}

@@ -2,13 +2,8 @@ package com.autofriend;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-
-import org.json.JSONException;
-import org.json.JSONObject;
+import java.util.Set;
 
 import android.app.Activity;
 import android.app.ActivityManager;
@@ -21,7 +16,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.util.Log;
-import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -46,7 +40,7 @@ public class AutoFriend extends Activity {
 	private ContactsListAdapter mContactsListAdapter = null;
 	private static ArrayList<Contact> mContacts;
 	private SharedPreferences mPrefs;
-	private static HashSet<String> numbers;
+	private static Set<String> numbers;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -59,8 +53,8 @@ public class AutoFriend extends Activity {
 		mContactsListView = (ListView) findViewById(R.id.contact_list);
 		mPrefs = getSharedPreferences("ttt_prefs", MODE_PRIVATE);
 		
-		numbers = (HashSet<String>) mPrefs.getStringSet("numbers", null);
-		if (numbers == null) 
+		numbers = mPrefs.getStringSet("numbers", null);
+		if (numbers == null)
 			numbers = new HashSet<String>();
 		
 		new LoadContacts().execute();
@@ -101,7 +95,6 @@ public class AutoFriend extends Activity {
 		super.onStop();
 		SharedPreferences mPrefs = getSharedPreferences("ttt_prefs", MODE_PRIVATE);  
 		SharedPreferences.Editor ed = mPrefs.edit();
-		//ed.putString("mNameToNumber", new JSONObject(mNumberToName).toString());
 		ed.putStringSet("numbers", numbers);
 		ed.commit();
 	}
@@ -192,8 +185,6 @@ public class AutoFriend extends Activity {
 		return new ContactsListAdapter(this, R.layout.contact_entry, mContacts);
 	}
 
-
-
 	private static class ContactsListAdapter extends ArrayAdapter<Contact> {
 		ArrayList<Contact> contacts;
 		Context c;
@@ -216,26 +207,25 @@ public class AutoFriend extends Activity {
 			Log.d(TAG,"got contact?");
 			if (contact != null) {
 				CheckBox nameCheckBox = (CheckBox) view.findViewById(R.id.set_service);
-				//nameCheckBox.setChecked(mSelectedContacts.get(position));
 				nameCheckBox.setChecked(contacts.get(position).getChecked());
 				if (nameCheckBox != null) {
-					nameCheckBox.setText(contact.getName() + " " + contact.getNumber());
+					nameCheckBox.setText(contact.getName());
 				}
-				nameCheckBox.setOnClickListener(new OnItemClickListener(position,nameCheckBox.getText(),nameCheckBox));
+				nameCheckBox.setOnClickListener(new OnItemClickListener(position, nameCheckBox.getText(), nameCheckBox));
 			}
 			return view;
 		}
 
-		// OnClickListener for individual checkboxes
 		class OnItemClickListener implements OnClickListener{          
 			private int position;
 			private CharSequence text;
 			private CheckBox checkBox;
-			OnItemClickListener(int position, CharSequence text,CheckBox checkBox){
+			
+			OnItemClickListener(int position, CharSequence text, CheckBox checkBox){
 				this.position = position;
 				this.text = text;
 				this.checkBox = checkBox;
-				Log.v(TAG,"onItemClickListener "+position +" and text "+text);
+				Log.v(TAG,"onItemClickListener "+ position + " and text " + text);
 			}
 
 			@Override
@@ -320,8 +310,7 @@ public class AutoFriend extends Activity {
 		}
 	}
 	
-	public static HashSet<String> getNumbers() {
+	public static Set<String> getNumbers() {
 		return numbers;
 	}
-
 }
