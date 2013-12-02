@@ -4,15 +4,11 @@ import java.util.HashMap;
 
 import android.app.Service;
 import android.content.BroadcastReceiver;
-import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.util.Log;
 
@@ -24,23 +20,50 @@ import com.google.code.chatterbotapi.ChatterBotType;
 public class AutoFriendService extends Service {
 
 	private static final String TAG = "AutoFriendService";
-	private static final String RECEIVED_ACTION
-	= "android.provider.Telephony.SMS_RECEIVED";
 	
-	private static final String TELEPHONE_NUMBER_FIELD_NAME = "address";
-	private static final String MESSAGE_BODY_FIELD_NAME = "body";
-	private static final Uri SENT_MESSAGE_CONTENT_PROVIDER = Uri.parse("content://sms/sent");
+	private static final String SMS_RECEIVED
+		= "android.provider.Telephony.SMS_RECEIVED";
 	
-	private final ChatterBotType type = ChatterBotType.CLEVERBOT;
+	private static final ChatterBotType type = ChatterBotType.CLEVERBOT;
 	private static ChatterBotFactory botFactory;
 	private static HashMap<String, ChatterBotSession> sessionMap;
+	
+	@Override
+	public void onCreate() {
+		Log.d(TAG, "onCreate");
+		super.onCreate();
+		
+		botFactory = new ChatterBotFactory();
+		sessionMap = new HashMap<String, ChatterBotSession>();
+		
+		IntentFilter receiverFilter = new IntentFilter(SMS_RECEIVED);
+		registerReceiver(receiver, receiverFilter);
+		
+		MessageTimer.start();
+	}
 
+	@Override
+	public IBinder onBind(Intent intent) {
+		Log.d(TAG, "onBind");
+		return null;
+	}
+
+	@Override
+	public void onDestroy() {
+		Log.d(TAG, "onDestroy");
+		super.onDestroy();
+		
+		unregisterReceiver(receiver);
+		
+		MessageTimer.stop();
+	}
+	
 	private BroadcastReceiver receiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context c, Intent in) {
-			Log.v(TAG, "onReceive");
+			Log.v(TAG, "receiver/onReceive");
 
-			if (in.getAction().equals(RECEIVED_ACTION)) {
+			if (in.getAction().equals(SMS_RECEIVED)) {
 				Bundle bundle = in.getExtras();
 
 				if (bundle != null) {
@@ -65,76 +88,29 @@ public class AutoFriendService extends Service {
 							}
 						}
 						
-						String text = message.getDisplayMessageBody();
-						respond(message.getOriginatingAddress(), text, message.getOriginatingAddress());
+						respond(message.getOriginatingAddress(), message.getDisplayMessageBody(), c);
 					}
 				}
 			}
 		}
 	};
-
-	@Override
-	public void onCreate() {
-		Log.d(TAG, "onCreate");
-		super.onCreate();
-
-		sessionMap = new HashMap<String, ChatterBotSession>();
-
-		IntentFilter receiverFilter = new IntentFilter(RECEIVED_ACTION);
-		registerReceiver(receiver, receiverFilter);
-
-		botFactory = new ChatterBotFactory();
-	}
-
-	@Override
-	public IBinder onBind(Intent intent) {
-		Log.d(TAG, "onBind");
-		return null;
-	}
-
-	@Override
-	public void onDestroy() {
-		Log.d(TAG, "onDestroy");
-		super.onDestroy();
-		
-		unregisterReceiver(receiver);
-	}
 	
 	/*
 	 * Get CleverBot's respond to the received message
-	 * Send the respond back to the sender
+	 * Add that respond to the message queue
 	 */
-	private void respond(String requester, String message, String originatingAddress) {
+	private void respond(String requester, String message, Context context) {
 		Log.v(TAG, "respond");
 		
 		try {
 			String reply = "Ok";
-			ChatterBotSession session = sessionMap.get(originatingAddress);
+			ChatterBotSession session = sessionMap.get(requester);
 			
 			reply = session.think(message);
 			
-			SmsManager sms = SmsManager.getDefault();
-			sms.sendTextMessage(requester, null, reply, null, null);
-			
-			addMessageToSent(requester, reply);
+			MessageTimer.addNewMessage(requester, reply, context);	
 		} catch (Exception e) {
 			Log.e("respond", "error with respond", e);
 		}
-	}
-	
-	/*
-	 * Add the CleverBot's respond to the Sent
-	 * Each CleverBot's message has "CleverBot> " appended to front of it
-	 */
-	private void addMessageToSent(String requester, String message) {
-		Log.v(TAG, "addMessageToSent");
-		
-		ContentValues sentSms = new ContentValues();
-		
-		sentSms.put(TELEPHONE_NUMBER_FIELD_NAME, requester);
-		sentSms.put(MESSAGE_BODY_FIELD_NAME, "CleverBot> " + message);
-		
-		ContentResolver contentResolver = getContentResolver();
-		contentResolver.insert(SENT_MESSAGE_CONTENT_PROVIDER, sentSms);
 	}
 }
