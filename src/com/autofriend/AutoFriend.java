@@ -30,6 +30,7 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ListView;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class AutoFriend extends Activity {
 
@@ -90,6 +91,10 @@ public class AutoFriend extends Activity {
 			case R.id.settings:
 				Intent settings = new Intent(this, Settings.class);
 				startActivity(settings);
+				return true;
+			case R.id.about:
+				Intent about = new Intent(this, About.class);
+				startActivity(about);
 				return true;
 			default: return super.onOptionsItemSelected(item);
 		}

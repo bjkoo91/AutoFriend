@@ -34,6 +34,11 @@
             android:label="@string/app_settings" >
         </activity>
         
+         <activity
+            android:name="com.autofriend.About"
+            android:label="@string/app_about" >
+        </activity>
+        
         <service
             android:name="com.autofriend.AutoFriendService"
             android:enabled="true" >

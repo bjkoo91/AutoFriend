@@ -7,6 +7,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 
 public class MessageTimer {
@@ -20,6 +21,8 @@ public class MessageTimer {
 	private static int defaultDelay = 3000;
 	private static int delayPerChar = 200;
 	private static Lock messageLock;
+	
+	private static int delay;
 	
 	/*
 	 * Initialize the message queue and start the timer
@@ -67,13 +70,13 @@ public class MessageTimer {
 	 * Add new message to the queue
 	 * Require the lock to add new message to the queue
 	 */
-	public static void addNewMessage(String requester, String message, Context context) {
+	public static void addNewMessage(String requester, String message, Context context, int d) {
 		Log.v(TAG, "addNewMessage");
-		
+		delay = 1000 * d;
 		try {
 			messageLock.lock();
 			long deliveryTime = messages.peekLast() == null ? System.currentTimeMillis() : messages.peekLast().getDeliveryTime();
-			deliveryTime += defaultDelay + (delayPerChar * message.length());
+			deliveryTime += delay + defaultDelay + (delayPerChar * message.length());
 			Message new_msg = new Message(requester, message, deliveryTime, context);
 			messages.addLast(new_msg);
 		} finally {

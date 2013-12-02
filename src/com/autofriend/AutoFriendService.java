@@ -9,8 +9,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.telephony.SmsMessage;
 import android.util.Log;
 
@@ -112,13 +114,16 @@ public class AutoFriendService extends Service {
 	private void respond(String requester, String message, Context context) {
 		Log.v(TAG, "respond");
 
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+		int delay = Integer.parseInt(prefs.getString("delay", "0"));
+		
 		try {
 			String reply = "Ok";
 			ChatterBotSession session = sessionMap.get(requester);
 
 			reply = session.think(message);
 
-			MessageTimer.addNewMessage(requester, reply, context);	
+			MessageTimer.addNewMessage(requester, reply, context, delay);	
 		} catch (Exception e) {
 			Log.e("respond", "error with respond", e);
 		}
